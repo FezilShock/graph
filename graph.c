@@ -50,11 +50,11 @@ node *create_node(char val)
     return new_node;
 }
 
-edge *create_edge(char val)
+edge *create_edge(char val1, char val2)
 {
     edge *new_edge = (edge *)malloc(sizeof(edge));
-    new_edge->first_top = 0;
-    new_edge->second_top = 0;
+    new_edge->first_top = val1;
+    new_edge->second_top = val2;
     return new_edge;
 }
 
@@ -114,7 +114,7 @@ bool setSearch(set *set, double var)
  */
 void setPush(set *set, char new_var)
 {
-    if(new_var != '\n' && new_var != ' '){
+    if(new_var != '\n' && new_var != ' ' && new_var != EOF){
         if (set->first_node == NULL)
         {
             node *tmp = create_node(new_var);
@@ -135,6 +135,26 @@ void setPush(set *set, char new_var)
     }
 }
 
+
+
+void edgesetPush(edgeset *set, char new_var1, char new_var2)
+{
+    if((new_var1 != '\n' && new_var1 != ' ' && new_var1 != EOF) && (new_var2 != '\n' && new_var2 != ' ' && new_var2 != EOF)){
+        if (set->first_edge == NULL)
+        {
+            edge *tmp = create_edge(new_var1, new_var2);
+            set->first_edge = tmp;
+            set->now = tmp;
+            ++set->size;
+        }else{
+            edge *tmp = create_edge(new_var1, new_var2);
+            set->now->next = tmp;
+            set->now = tmp;
+            ++set->size;
+        }
+    }
+}
+
 void setOutput(set *set, FILE* fp)
 {
     if (set->size)
@@ -143,6 +163,27 @@ void setOutput(set *set, FILE* fp)
         while (curNode != NULL)
         {
             fputc(curNode->val, fp);
+            curNode = curNode->next;
+        }
+    }
+    else
+    {
+        printf("Пустое множество");
+    }
+    putchar('\n');
+}
+
+void edgesetOutput(edgeset *set, FILE* fp)
+{
+    if (set->size)
+    {
+        edge *curNode = set->first_edge;
+        while (curNode != NULL)
+        {
+            fputc(curNode->first_top, fp);
+            fputc(' ', fp);
+            fputc(curNode->second_top, fp);
+            fputc('\n', fp);
             curNode = curNode->next;
         }
     }
@@ -172,20 +213,30 @@ void freeset(set *set)
 int main(void){
     char byte;
     set* tops = createSet();
-    //set *edgeset = createEdgeSet();
-
+    edgeset *edges = createEdgeSet();
     FILE* fp = fopen("list_of_edges0.txt", "r");
     if(fp == NULL)
         return 1;
-    while((byte = fgetc(fp)) != '\n'){
-        setPush(tops, byte);
+    do{
+        char ch1 = fgetc(fp);
+        fgetc(fp);
+        char ch2 = fgetc(fp);
+        setPush(tops, ch1);
+        setPush(tops, ch2);
+        edgesetPush(edges, ch1, ch2);
     }
+    while((byte = fgetc(fp)) != EOF);
+        
     fclose(fp);
     FILE* fp2 = fopen("list_of_tops0.txt", "w");
     if(fp2 == NULL)
         return 1;
     setOutput(tops, fp2);
     fclose(fp2);
+    FILE* fp3 = fopen("list_of_edges01.txt", "w");
+    if(fp3 == NULL)
+        return 1;
+    edgesetOutput(edges, fp3);
     freeset(tops);
     //system("dot -Tpng graph.dot -ograph.png");
     //system("open graph.png");
