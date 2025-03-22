@@ -162,7 +162,9 @@ void setOutput(set *set, FILE* fp)
         node *curNode = set->first_node;
         while (curNode != NULL)
         {
+            fputc(' ', fp);
             fputc(curNode->val, fp);
+            fputs("; ", fp);
             curNode = curNode->next;
         }
     }
@@ -181,9 +183,9 @@ void edgesetOutput(edgeset *set, FILE* fp)
         while (curNode != NULL)
         {
             fputc(curNode->first_top, fp);
-            fputc(' ', fp);
+            fputs("--", fp);
             fputc(curNode->second_top, fp);
-            fputc('\n', fp);
+            fputs("; ", fp);
             curNode = curNode->next;
         }
     }
@@ -210,11 +212,27 @@ void freeset(set *set)
     free(set);
 }
 
+void freeedgeset(edgeset *set)
+{
+    if (set->size)
+    {
+        edge *curNode = set->first_edge;
+        while (curNode != NULL)
+        {
+            edge *delNode = curNode;
+            curNode = curNode->next;
+            free(delNode);
+        }
+        free(curNode);
+    }
+    free(set);
+}
+
 int main(void){
     char byte;
     set* tops = createSet();
     edgeset *edges = createEdgeSet();
-    FILE* fp = fopen("list_of_edges0.txt", "r");
+    FILE* fp = fopen("list_of_edges199.txt", "r");
     if(fp == NULL)
         return 1;
     do{
@@ -237,9 +255,28 @@ int main(void){
     if(fp3 == NULL)
         return 1;
     edgesetOutput(edges, fp3);
+
+
+    FILE* fp4 = fopen("graph199.dot", "w");
+    if(fp4 == NULL)
+        return 1;
+    fputs("graph graphname {", fp4);
+    fclose(fp4);
+
+    FILE* fp5 = fopen("graph199.dot", "a");
+    if(fp5 == NULL)
+        return 1;
+    setOutput(tops, fp5);
+    edgesetOutput(edges, fp5);
+    fputc('}', fp5);
+    fclose(fp5);
+
+
     freeset(tops);
-    //system("dot -Tpng graph.dot -ograph.png");
-    //system("open graph.png");
+    freeedgeset(edges);
+
+    system("dot -Tpng graph199.dot -ograph199.png");
+    system("open graph199.png");
     //system("find . -name \"*.dot\"");
     return 0;
 }
