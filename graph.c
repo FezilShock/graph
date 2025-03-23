@@ -31,13 +31,6 @@ typedef struct
     int size;         // переменная для хранения количества элементов
 } edgeset;
 
-typedef struct
-{
-    edgeset *edges; // указатель на первую ноду множества
-    set *tops;
-    int size;         // переменная для хранения количества элементов
-} graph;
-
 /**
  * Функция выделяет память под новую ноду и возвращает указатель на неё.
  * Параметр `val` используется для записи значения в ноду
@@ -74,15 +67,6 @@ set *createSet(void)
     new_set->first_node = NULL;
     new_set->size = 0;
     return new_set;
-}
-
-graph *createGraph(void)
-{
-    graph *new_graph = (graph *)malloc(sizeof(graph));
-    new_graph->edges = NULL;
-    new_graph->tops = NULL;
-    new_graph->size = 0;
-    return new_graph;
 }
 
 /*
@@ -228,11 +212,8 @@ void freeedgeset(edgeset *set)
     free(set);
 }
 
-int main(void){
+int readfile(FILE* fp, set* tops, edgeset* edges){
     char byte;
-    set* tops = createSet();
-    edgeset *edges = createEdgeSet();
-    FILE* fp = fopen("list_of_edges199.txt", "r");
     if(fp == NULL)
         return 1;
     do{
@@ -246,37 +227,84 @@ int main(void){
     while((byte = fgetc(fp)) != EOF);
         
     fclose(fp);
-    FILE* fp2 = fopen("list_of_tops0.txt", "w");
-    if(fp2 == NULL)
-        return 1;
-    setOutput(tops, fp2);
-    fclose(fp2);
-    FILE* fp3 = fopen("list_of_edges01.txt", "w");
-    if(fp3 == NULL)
-        return 1;
-    edgesetOutput(edges, fp3);
+    return 0;
+}
 
-
-    FILE* fp4 = fopen("graph199.dot", "w");
-    if(fp4 == NULL)
+int writefile1(FILE* fp, set* tops, edgeset* edges){
+    if(fp == NULL)
         return 1;
-    fputs("graph graphname {", fp4);
-    fclose(fp4);
+    fputs("graph graphname {", fp);
+    fclose(fp);
+    return 0;
+}
 
-    FILE* fp5 = fopen("graph199.dot", "a");
-    if(fp5 == NULL)
+int writefile2(FILE* fp, set* tops, edgeset* edges){
+    if(fp == NULL)
         return 1;
-    setOutput(tops, fp5);
-    edgesetOutput(edges, fp5);
-    fputc('}', fp5);
-    fclose(fp5);
+    setOutput(tops, fp);
+    edgesetOutput(edges, fp);
+    fputc('}', fp);
+    fclose(fp);
+    return 0;
+}
 
+int createGraph(void){
+    set* tops = createSet();
+    edgeset *edges = createEdgeSet();
+    FILE* fp = fopen("input/list_of_edges1.txt", "r");
+    readfile(fp, tops, edges);
+
+    FILE* fp2 = fopen("output/graph1.dot", "w");
+    writefile1(fp2, tops, edges);
+
+    FILE* fp3 = fopen("output/graph1.dot", "a");
+    writefile2(fp3, tops, edges);
 
     freeset(tops);
     freeedgeset(edges);
-
-    system("dot -Tpng graph199.dot -ograph199.png");
-    system("open graph199.png");
-    //system("find . -name \"*.dot\"");
+    
     return 0;
+}
+
+void outputGraph(){
+    system("dot -Tpng output/graph1.dot -opngs/graph1.png");
+    system("open pngs/graph1.png");
+}
+
+void help(void){
+    printf("Commands for work with programm:\n1 - Create graph from file.\n2 - Output graph.\n0 - exit from program.\n");
+
+}
+
+int main(void){
+    int menu = 0;
+    int input;
+
+    help();
+    do
+    {
+        menu = -1;
+        puts("Введите команду: ");
+        input = scanf("%d", &menu);
+        switch (menu)
+        {
+        case 1:
+            createGraph();
+            break;
+        case 2:
+            outputGraph();
+            break;
+        case 0:
+            
+            return 0;
+        case -1:
+            puts("Ошибка ввода!!");
+            return 0;
+        default:
+            menu = 0;
+            help();
+        }
+    }while(input);
+    return 0;
+    //system("find . -name \"*.dot\"");
 }
