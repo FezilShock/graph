@@ -1,13 +1,34 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
+
+char *dynstring(char c)
+{
+    int l = 0;
+    int size = 10;
+    char *string = (char *)malloc(size * sizeof(char));
+    char ch = getchar();
+    ch = getchar();
+    while (ch != c)
+    {
+        string[(l)++] = ch;
+        if (l >= size)
+        {
+            size *= 2;
+            string = (char *)realloc(string, size * sizeof(char));
+        }
+        ch = getchar();
+    }
+    string[l] = '\0';
+    return string;
+}
 
 typedef struct n
 {
-    char val;     // переменная для хранения содержимого ноды
+    char val;       // переменная для хранения содержимого ноды
     struct n *next; // указатель на следующую ноду
 } node;
-
 
 typedef struct n2
 {
@@ -98,7 +119,8 @@ bool setSearch(set *set, double var)
  */
 void setPush(set *set, char new_var)
 {
-    if(new_var != '\n' && new_var != ' ' && new_var != EOF){
+    if (new_var != '\n' && new_var != ' ' && new_var != EOF)
+    {
         if (set->first_node == NULL)
         {
             node *tmp = create_node(new_var);
@@ -119,18 +141,19 @@ void setPush(set *set, char new_var)
     }
 }
 
-
-
 void edgesetPush(edgeset *set, char new_var1, char new_var2)
 {
-    if((new_var1 != '\n' && new_var1 != ' ' && new_var1 != EOF) && (new_var2 != '\n' && new_var2 != ' ' && new_var2 != EOF)){
+    if ((new_var1 != '\n' && new_var1 != ' ' && new_var1 != EOF) && (new_var2 != '\n' && new_var2 != ' ' && new_var2 != EOF))
+    {
         if (set->first_edge == NULL)
         {
             edge *tmp = create_edge(new_var1, new_var2);
             set->first_edge = tmp;
             set->now = tmp;
             ++set->size;
-        }else{
+        }
+        else
+        {
             edge *tmp = create_edge(new_var1, new_var2);
             set->now->next = tmp;
             set->now = tmp;
@@ -139,27 +162,21 @@ void edgesetPush(edgeset *set, char new_var1, char new_var2)
     }
 }
 
-void setOutput(set *set, FILE* fp)
+void setOutput(set *set, FILE *fp)
 {
     if (set->size)
     {
         node *curNode = set->first_node;
         while (curNode != NULL)
         {
-            fputc(' ', fp);
             fputc(curNode->val, fp);
-            fputs("; ", fp);
+            fputs(";", fp);
             curNode = curNode->next;
         }
     }
-    else
-    {
-        printf("Пустое множество");
-    }
-    putchar('\n');
 }
 
-void edgesetOutput(edgeset *set, FILE* fp)
+void edgesetOutput(edgeset *set, FILE *fp)
 {
     if (set->size)
     {
@@ -173,11 +190,6 @@ void edgesetOutput(edgeset *set, FILE* fp)
             curNode = curNode->next;
         }
     }
-    else
-    {
-        printf("Пустое множество");
-    }
-    putchar('\n');
 }
 
 void freeset(set *set)
@@ -212,34 +224,36 @@ void freeedgeset(edgeset *set)
     free(set);
 }
 
-int readfile(FILE* fp, set* tops, edgeset* edges){
+int readfile(FILE *fp, set *tops, edgeset *edges)
+{
     char byte;
-    if(fp == NULL)
+    if (fp == NULL)
         return 1;
-    do{
+    do
+    {
         char ch1 = fgetc(fp);
         fgetc(fp);
         char ch2 = fgetc(fp);
         setPush(tops, ch1);
         setPush(tops, ch2);
         edgesetPush(edges, ch1, ch2);
-    }
-    while((byte = fgetc(fp)) != EOF);
-        
+    } while ((byte = fgetc(fp)) != EOF);
     fclose(fp);
     return 0;
 }
 
-int writefile1(FILE* fp, set* tops, edgeset* edges){
-    if(fp == NULL)
+int writefile1(FILE *fp, set *tops, edgeset *edges)
+{
+    if (fp == NULL)
         return 1;
     fputs("graph graphname {", fp);
     fclose(fp);
     return 0;
 }
 
-int writefile2(FILE* fp, set* tops, edgeset* edges){
-    if(fp == NULL)
+int writefile2(FILE *fp, set *tops, edgeset *edges)
+{
+    if (fp == NULL)
         return 1;
     setOutput(tops, fp);
     edgesetOutput(edges, fp);
@@ -248,37 +262,70 @@ int writefile2(FILE* fp, set* tops, edgeset* edges){
     return 0;
 }
 
-int createGraph(void){
-    set* tops = createSet();
+int createGraph(void)
+{
+    set *tops = createSet();
     edgeset *edges = createEdgeSet();
-    FILE* fp = fopen("input/list_of_edges1.txt", "r");
+    char *filename = dynstring('\n');
+
+    char *lines = (char *)malloc(sizeof(filename) * strlen(filename) * 2);
+    strcat(lines, "input/");
+    strcat(lines, filename);
+    strcat(lines, ".txt");
+
+    char *lines2 = (char *)malloc(sizeof(filename) * strlen(filename) * 2);
+    strcat(lines2, "output/");
+    strcat(lines2, filename);
+    strcat(lines2, ".dot");
+
+    FILE *fp = fopen(lines, "r");
     readfile(fp, tops, edges);
 
-    FILE* fp2 = fopen("output/graph1.dot", "w");
+    FILE *fp2 = fopen(lines2, "w");
     writefile1(fp2, tops, edges);
 
-    FILE* fp3 = fopen("output/graph1.dot", "a");
+    FILE *fp3 = fopen(lines2, "a");
     writefile2(fp3, tops, edges);
 
     freeset(tops);
     freeedgeset(edges);
-    
+    free(lines);
+    free(lines2);
+
     return 0;
 }
 
-void outputGraph(){
-    system("dot -Tpng output/graph1.dot -opngs/graph1.png");
-    system("open pngs/graph1.png");
+void outputGraph(void)
+{
+    char *filename = dynstring('\n');
+    char *lines = (char *)malloc(sizeof(filename) * strlen(filename) * 2);
+    strcat(lines, "dot -Tpng output/");
+    strcat(lines, filename);
+    strcat(lines, ".dot -opngs/");
+    strcat(lines, filename);
+    strcat(lines, ".png");
+
+    char *lines2 = (char *)malloc(sizeof(filename) * strlen(filename) * 2);
+    strcat(lines2, "open pngs/");
+    strcat(lines2, filename);
+    strcat(lines2, ".png");
+
+    system(lines);
+    system(lines2);
+    free(lines);
+    free(lines2);
 }
 
-void help(void){
-    printf("Commands for work with programm:\n1 - Create graph from file.\n2 - Output graph.\n0 - exit from program.\n");
-
+void help(void)
+{
+    printf("Commands for work with program:\n1 - Create graph from file.\n2 - Output graph.\n0 - Exit from program.\n");
 }
 
-int main(void){
+int main(void)
+{
     int menu = 0;
     int input;
+    char *filename;
 
     help();
     do
@@ -289,13 +336,17 @@ int main(void){
         switch (menu)
         {
         case 1:
+            system("cd input && ls");
+            puts("Input filename without extention");
             createGraph();
             break;
         case 2:
+            system("cd output && ls");
+            puts("Input filename without extention");
             outputGraph();
             break;
         case 0:
-            
+
             return 0;
         case -1:
             puts("Ошибка ввода!!");
@@ -304,7 +355,6 @@ int main(void){
             menu = 0;
             help();
         }
-    }while(input);
+    } while (input);
     return 0;
-    //system("find . -name \"*.dot\"");
 }
