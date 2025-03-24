@@ -26,36 +26,31 @@ char *dynstring(char c)
 
 typedef struct n
 {
-    char val;       // переменная для хранения содержимого ноды
-    struct n *next; // указатель на следующую ноду
+    char val;
+    struct n *next;
 } node;
 
 typedef struct n2
 {
-    char first_top; // указатель на первую ноду множества
+    char first_top; 
     char second_top;
-    struct n2 *next; // указатель на следующую ноду
+    struct n2 *next; 
 } edge;
 
-// объявляем структуру для множества
 typedef struct
 {
-    node *first_node; // указатель на первую ноду множества
-    node *now;        // указатель на
-    int size;         // переменная для хранения количества элементов
+    node *first_node;
+    node *now;        
+    int size;        
 } set;
 
 typedef struct
 {
-    edge *first_edge; // указатель на первую ноду множества
-    edge *now;        // указатель на
-    int size;         // переменная для хранения количества элементов
+    edge *first_edge;
+    edge *now;       
+    int size;        
 } edgeset;
 
-/**
- * Функция выделяет память под новую ноду и возвращает указатель на неё.
- * Параметр `val` используется для записи значения в ноду
- */
 node *create_node(char val)
 {
     node *new_node = (node *)malloc(sizeof(node));
@@ -72,7 +67,6 @@ edge *create_edge(char val1, char val2)
     return new_edge;
 }
 
-// Функция выделяет память под множество и возвращает указатель на множество
 edgeset *createEdgeSet(void)
 {
     edgeset *new_set = (edgeset *)malloc(sizeof(edgeset));
@@ -81,7 +75,6 @@ edgeset *createEdgeSet(void)
     return new_set;
 }
 
-// Функция выделяет память под множество и возвращает указатель на множество
 set *createSet(void)
 {
     set *new_set = (set *)malloc(sizeof(set));
@@ -90,10 +83,6 @@ set *createSet(void)
     return new_set;
 }
 
-/*
- * Функция для проверки существования элемента
- * Возвращает NULL, если элемент не найден
- */
 bool setSearch(set *set, double var)
 {
     if (set->size)
@@ -111,12 +100,6 @@ bool setSearch(set *set, double var)
         return NULL;
 }
 
-/*
- * Функция добавления элементов в множество
- * Возвращает 0 если был записан хотя бы один элемент
- * Иначе возвращает -1
- * Параметр `set` - указатель на множество
- */
 void setPush(set *set, char new_var)
 {
     if (new_var != '\n' && new_var != ' ' && new_var != EOF)
@@ -228,7 +211,10 @@ int readfile(FILE *fp, set *tops, edgeset *edges)
 {
     char byte;
     if (fp == NULL)
+    {
         return 1;
+    }
+
     do
     {
         char ch1 = fgetc(fp);
@@ -268,29 +254,32 @@ int createGraph(void)
     edgeset *edges = createEdgeSet();
     char *filename = dynstring('\n');
 
-    char *lines = (char *)malloc(sizeof(filename) * strlen(filename) * 2);
-    strcat(lines, "input/");
-    strcat(lines, filename);
-    strcat(lines, ".txt");
+    char *filepath = (char *)malloc(sizeof(filename) * strlen(filename) * 2);
+    strcat(filepath, "input/");
+    strcat(filepath, filename);
+    strcat(filepath, ".txt");
 
-    char *lines2 = (char *)malloc(sizeof(filename) * strlen(filename) * 2);
-    strcat(lines2, "output/");
-    strcat(lines2, filename);
-    strcat(lines2, ".dot");
+    char *outfilepath = (char *)malloc(sizeof(filename) * strlen(filename) * 2);
+    strcat(outfilepath, "output/");
+    strcat(outfilepath, filename);
+    strcat(outfilepath, ".dot");
 
-    FILE *fp = fopen(lines, "r");
-    readfile(fp, tops, edges);
+    FILE *fp = fopen(filepath, "r");
+    if(readfile(fp, tops, edges) == 0){
 
-    FILE *fp2 = fopen(lines2, "w");
-    writefile1(fp2, tops, edges);
+        FILE *fp2 = fopen(outfilepath, "w");
+        writefile1(fp2, tops, edges);
 
-    FILE *fp3 = fopen(lines2, "a");
-    writefile2(fp3, tops, edges);
-
+        FILE *fp3 = fopen(outfilepath, "a");
+        writefile2(fp3, tops, edges);
+    }else{
+        perror(filepath);
+        return 1;
+    }
     freeset(tops);
     freeedgeset(edges);
-    free(lines);
-    free(lines2);
+    free(filepath);
+    free(outfilepath);
 
     return 0;
 }
@@ -298,22 +287,22 @@ int createGraph(void)
 void outputGraph(void)
 {
     char *filename = dynstring('\n');
-    char *lines = (char *)malloc(sizeof(filename) * strlen(filename) * 2);
-    strcat(lines, "dot -Tpng output/");
-    strcat(lines, filename);
-    strcat(lines, ".dot -opngs/");
-    strcat(lines, filename);
-    strcat(lines, ".png");
+    char *filepath = (char *)malloc(sizeof(filename) * strlen(filename) * 2);
+    strcat(filepath, "dot -Tpng output/");
+    strcat(filepath, filename);
+    strcat(filepath, ".dot -opngs/");
+    strcat(filepath, filename);
+    strcat(filepath, ".png");
 
-    char *lines2 = (char *)malloc(sizeof(filename) * strlen(filename) * 2);
-    strcat(lines2, "open pngs/");
-    strcat(lines2, filename);
-    strcat(lines2, ".png");
+    char *filepath2 = (char *)malloc(sizeof(filename) * strlen(filename) * 2);
+    strcat(filepath2, "open pngs/");
+    strcat(filepath2, filename);
+    strcat(filepath2, ".png");
 
-    system(lines);
-    system(lines2);
-    free(lines);
-    free(lines2);
+    system(filepath);
+    system(filepath2);
+    free(filepath);
+    free(filepath2);
 }
 
 void help(void)
@@ -331,7 +320,7 @@ int main(void)
     do
     {
         menu = -1;
-        puts("Введите команду: ");
+        puts("Input commands: ");
         input = scanf("%d", &menu);
         switch (menu)
         {
@@ -349,7 +338,7 @@ int main(void)
 
             return 0;
         case -1:
-            puts("Ошибка ввода!!");
+            puts("Input error!!");
             return 0;
         default:
             menu = 0;
