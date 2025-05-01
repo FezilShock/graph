@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <string.h>
 
+// Функция возвращающая динамическую строку
 char *dynstring(char c)
 {
     int l = 0;
@@ -24,33 +25,41 @@ char *dynstring(char c)
     return string;
 }
 
+// Структура вершин графа
 typedef struct n
 {
     char val;
     struct n *next;
 } node;
 
+// Структура, описывающая ребра графа
 typedef struct n2
 {
-    char first_top; 
+    char first_top;
     char second_top;
-    struct n2 *next; 
+    struct n2 *next;
 } edge;
 
+// Структура, описывающая множество вершин
 typedef struct
 {
     node *first_node;
-    node *now;        
-    int size;        
+    node *now;
+    int size;
 } set;
 
+// Скруктура, описывающая множество ребер
 typedef struct
 {
     edge *first_edge;
-    edge *now;       
-    int size;        
+    edge *now;
+    int size;
 } edgeset;
 
+/**
+ * Функция которая выделяет память под новую ноду и возвращает указатель на неё.
+ * Параметр `val` используется для записи значения в ноду
+ */
 node *create_node(char val)
 {
     node *new_node = (node *)malloc(sizeof(node));
@@ -59,6 +68,11 @@ node *create_node(char val)
     return new_node;
 }
 
+/**
+ * Функция которая выделяет память под новое ребро и возвращает указатель на неё.
+ * Параметр `val1` используется для записи значения первой вершины
+ * Параметр `val2` используется для записи значения второй вершины
+ */
 edge *create_edge(char val1, char val2)
 {
     edge *new_edge = (edge *)malloc(sizeof(edge));
@@ -67,6 +81,7 @@ edge *create_edge(char val1, char val2)
     return new_edge;
 }
 
+// Функция выделяет память под множество ребер и возвращает указатель на множество
 edgeset *createEdgeSet(void)
 {
     edgeset *new_set = (edgeset *)malloc(sizeof(edgeset));
@@ -75,6 +90,7 @@ edgeset *createEdgeSet(void)
     return new_set;
 }
 
+// Функция выделяет память под множество вершин и возвращает указатель на множество
 set *createSet(void)
 {
     set *new_set = (set *)malloc(sizeof(set));
@@ -83,6 +99,10 @@ set *createSet(void)
     return new_set;
 }
 
+/*
+ * Функция для проверки существования элемента
+ * Возвращает NULL, если элемент не найден
+ */
 bool setSearch(set *set, double var)
 {
     if (set->size)
@@ -100,6 +120,11 @@ bool setSearch(set *set, double var)
         return NULL;
 }
 
+/*
+ * Функция добавления элементов в множество вержин
+ * Параметр `set` - указатель на множество
+ * Параметр `new_var` - добавляемое значение
+ */
 void setPush(set *set, char new_var)
 {
     if (new_var != '\n' && new_var != ' ' && new_var != EOF)
@@ -124,6 +149,12 @@ void setPush(set *set, char new_var)
     }
 }
 
+/*
+ * Функция добавления элементов в множество вержин
+ * Параметр `set` - указатель на множество
+ * Параметр `new_var1` - добавляемое значение первой вершины
+ * Параметр `new_var2` - добавляемое значение второй вершины
+ */
 void edgesetPush(edgeset *set, char new_var1, char new_var2)
 {
     if ((new_var1 != '\n' && new_var1 != ' ' && new_var1 != EOF) && (new_var2 != '\n' && new_var2 != ' ' && new_var2 != EOF))
@@ -145,6 +176,12 @@ void edgesetPush(edgeset *set, char new_var1, char new_var2)
     }
 }
 
+/*
+ * Функция вывода множества вершин в файл
+ * Через пробел выводит все элементы множества
+ * Параметр `set` - указатель на множество
+ * Параметр 'FILE' - указатель на файловый поток
+ */
 void setOutput(set *set, FILE *fp)
 {
     if (set->size)
@@ -159,6 +196,12 @@ void setOutput(set *set, FILE *fp)
     }
 }
 
+/*
+ * Функция вывода множества ребер в файл
+ * Через пробел выводит все элементы множества
+ * Параметр `set` - указатель на множество
+ * Параметр 'FILE' - указатель на файловый поток
+ */
 void edgesetOutput(edgeset *set, FILE *fp)
 {
     if (set->size)
@@ -175,6 +218,10 @@ void edgesetOutput(edgeset *set, FILE *fp)
     }
 }
 
+/*
+ * Функция освобождения памяти, занятой множеством вершин
+ * Параметр `set` - указатель на множество
+ */
 void freeset(set *set)
 {
     if (set->size)
@@ -191,6 +238,10 @@ void freeset(set *set)
     free(set);
 }
 
+/*
+ * Функция освобождения памяти, занятой множеством ребер
+ * Параметр `set` - указатель на множество
+ */
 void freeedgeset(edgeset *set)
 {
     if (set->size)
@@ -207,6 +258,12 @@ void freeedgeset(edgeset *set)
     free(set);
 }
 
+/*
+ * Функция чтения файла
+ * Параметр `edges` - указатель на множество ребер
+ * Параметр `tops` - указатель на множество вершин
+ * Параметр `*fp` - указатель на файловый поток
+ */
 int readfile(FILE *fp, set *tops, edgeset *edges)
 {
     char byte;
@@ -228,19 +285,17 @@ int readfile(FILE *fp, set *tops, edgeset *edges)
     return 0;
 }
 
-int writefile1(FILE *fp, set *tops, edgeset *edges)
+/*
+ * Функция записи файла .dot
+ * Параметр `edges` - указатель на множество ребер
+ * Параметр `tops` - указатель на множество вершин
+ * Параметр `*fp` - указатель на файловый поток
+ */
+int writefile(FILE *fp, set *tops, edgeset *edges)
 {
     if (fp == NULL)
         return 1;
     fputs("graph graphname {", fp);
-    fclose(fp);
-    return 0;
-}
-
-int writefile2(FILE *fp, set *tops, edgeset *edges)
-{
-    if (fp == NULL)
-        return 1;
     setOutput(tops, fp);
     edgesetOutput(edges, fp);
     fputc('}', fp);
@@ -248,6 +303,7 @@ int writefile2(FILE *fp, set *tops, edgeset *edges)
     return 0;
 }
 
+//Функция создания графа
 int createGraph(void)
 {
     set *tops = createSet();
@@ -265,14 +321,14 @@ int createGraph(void)
     strcat(outfilepath, ".dot");
 
     FILE *fp = fopen(filepath, "r");
-    if(readfile(fp, tops, edges) == 0){
+    if (readfile(fp, tops, edges) == 0)
+    {
 
         FILE *fp2 = fopen(outfilepath, "w");
-        writefile1(fp2, tops, edges);
-
-        FILE *fp3 = fopen(outfilepath, "a");
-        writefile2(fp3, tops, edges);
-    }else{
+        writefile(fp2, tops, edges);
+    }
+    else
+    {
         perror(filepath);
         return 1;
     }
@@ -284,6 +340,7 @@ int createGraph(void)
     return 0;
 }
 
+//Функция создания графа в виде png картинки
 void outputGraph(void)
 {
     char *filename = dynstring('\n');
